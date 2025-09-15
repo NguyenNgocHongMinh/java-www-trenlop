@@ -15,13 +15,24 @@ public class CheckoutServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession();
+        String action = req.getParameter("action");
+
+        if ("Cancel".equals(action)) {
+            resp.sendRedirect("giohang.jsp");
+            return;
+        }
+
         CartBean cart = (CartBean) session.getAttribute("cart");
         if (cart == null || cart.getItems().isEmpty()) {
-            session.removeAttribute("cart");
-            req.setAttribute("message", "Thanh toán thành công!");
-        } else {
             req.setAttribute("message", "Giỏ hàng trống, không thể thanh toán.");
+            req.getRequestDispatcher("thanhtoan.jsp").forward(req, resp);
+            return;
+        } else {
+            session.removeAttribute("cart");
+            resp.setContentType("text/html; charset=UTF-8");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().println("<script>alert('Đặt hàng thành công!'); window.location='products';</script>");
+
         }
-        req.getRequestDispatcher("thanhtoan.jsp").forward(req, resp);
     }
 }
