@@ -1,6 +1,8 @@
 package com.se.nguyenngochongminh_springbootjpa.model;
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "departments")
 
@@ -11,6 +13,8 @@ public class Department {
 
     @Column(name = "dept_name")
     private String deptName;
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Employee> employees;
 
     public Department() {
     }

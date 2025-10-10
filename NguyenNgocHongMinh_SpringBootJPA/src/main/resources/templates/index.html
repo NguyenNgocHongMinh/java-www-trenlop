@@ -7,14 +7,23 @@
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 </head>
 <body >
-<div >
+<div class="m-3">
     <h1 class="text-center mb-4">Employees</h1>
 
     <h4>Employee List</h4>
-    <table class="table-bordered">
+    <form th:action="@{/search}" method="get" class="mb-3 d-flex">
+        <input type="text" name="name"  placeholder="Tìm theo tên">
+        <input type="number" name="age" placeholder="Tìm theo tuổi">
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        <a th:href="@{/max-age}" class="btn btn-warning">Tuổi lớn nhất</a>
+        <a th:href="@{/}" class="btn btn-secondary">Reset</a>
+    </form>
+
+    <table class="table table-bordered ">
         <tr>
             <th>ID</th><th>Name</th><th>Email</th>
             <th>Age</th><th>Salary</th><th>Status</th><th>Dept</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -26,10 +35,18 @@
             <td th:text="${e.salary}"></td>
             <td th:text="${e.status == 1 ? 'Active' : 'Inactive'}"></td>
             <td th:text="${e.department.deptName}"></td>
+            <td>
+                <a th:href="@{'/edit/' + ${e.empId}}" class="btn btn-warning btn-sm">Sửa</a>
+                <a th:href="@{'/delete/' + ${e.empId}}" class="btn btn-danger btn-sm">Xóa</a>
+            </td>
         </tr>
         </tbody>
     </table>
-    <a href="/employees/add">add employee</a>
+    <div class="d-flex justify-content-between">
+        <a href="/add" class="btn btn-primary btn-sm">Add employee</a>
+        <a href="/department/" class="btn btn-info btn-sm ms-2">View Departments</a>
+    </div>
+
 </div>
 </body>
 </html>

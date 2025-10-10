@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/employees")
+@RequestMapping("/")
 public class EmployeeController {
 
     private final EmployeeService service;
@@ -21,7 +21,7 @@ public class EmployeeController {
     }
 
     // Trang view hiển thị danh sách
-    @GetMapping("/")
+    @GetMapping("")
     public String listEmployees(Model model) {
         model.addAttribute("employees", service.getAll());
         return "index";
@@ -34,50 +34,39 @@ public class EmployeeController {
     }
     @PostMapping("/save")
     public String saveEmployee(@ModelAttribute("employee") Employee e) {
-        service.create(e);
-        return "redirect:/employees/";
-    }
-    @GetMapping("/api")
-    @ResponseBody
-    public List<Employee> getAllApi() {
-        return service.getAll();
-    }
-
-    @PostMapping("/api")
-    @ResponseBody
-    public Employee createApi(@RequestBody Employee e) {
-        return service.create(e);
+        if (e.getEmpId() != null && !e.getEmpId().isEmpty()) {
+            service.update(e.getEmpId(), e);
+        } else {
+            service.create(e);
+        }
+        return "redirect:/";
     }
 
-    @GetMapping("/api/max-salary")
-    @ResponseBody
-    public List<Employee> getMaxSalaryApi() {
-        return service.getMaxSalaryEmployees();
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable("id") String id, Model model) {
+        Employee emp = service.getById(id);
+        model.addAttribute("employee", emp);
+        model.addAttribute("departments", serviceD.getAll());
+        return "add-employee"; // dùng lại form thêm
+    }
+    @GetMapping("/delete/{id}")
+    public String deleteEmployee(@PathVariable("id") String id) {
+        service.delete(id);
+        return "redirect:/";
+    }
+    @GetMapping("/search")
+    public String searchEmployees(@RequestParam(required = false) String name,
+                                  @RequestParam(required = false) Integer age,
+                                  Model model) {
+        model.addAttribute("employees", service.search(name, age));
+        return "index";
     }
 
-    @GetMapping("/api/max-age")
-    @ResponseBody
-    public List<Employee> getMaxAgeApi() {
-        return service.getMaxAgeEmployees();
+    @GetMapping("/max-age")
+    public String showOldestEmployees(Model model) {
+        model.addAttribute("employees", service.getOldestEmployees());
+        return "index";
     }
 
-    @GetMapping("/api/avg-salary-dept")
-    @ResponseBody
-    public List<Map<String, Object>> avgSalaryByDeptApi() {
-        return service.getAvgSalaryByDept().stream().map(o -> Map.of(
-                "deptId", o[0],
-                "count", o[1],
-                "avgSalary", o[2]
-        )).toList();
-    }
 
-    @GetMapping("/api/avg-age-status")
-    @ResponseBody
-    public List<Map<String, Object>> avgAgeByStatusApi() {
-        return service.getAvgAgeByStatus().stream().map(o -> Map.of(
-                "status", o[0],
-                "count", o[1],
-                "avgAge", o[2]
-        )).toList();
-    }
 }

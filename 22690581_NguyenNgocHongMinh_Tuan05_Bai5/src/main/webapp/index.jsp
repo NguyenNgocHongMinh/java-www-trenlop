@@ -8,7 +8,7 @@
 <h1><%= "Hello World!" %>
 </h1>
 <br/>
-<a href="${pageContext.request.contextPath}/employees">list employee</a>
+<a href="${pageContext.request.contextPath}/employees">Danh sach nhan vien</a>
 
 </body>
 </html>

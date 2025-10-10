@@ -10,17 +10,22 @@ import java.util.List;
 public interface EmployeeRepository extends JpaRepository<Employee, String> {
 
     List<Employee> findByEmpNameContainingIgnoreCase(String name);
-    List<Employee> findByStatus(int status);
-
+    List<Employee> findByAge(int age);
     @Query("SELECT e FROM Employee e WHERE e.salary = (SELECT MAX(e2.salary) FROM Employee e2)")
     List<Employee> findMaxSalaryEmployees();
 
     @Query("SELECT e FROM Employee e WHERE e.age = (SELECT MAX(e2.age) FROM Employee e2)")
     List<Employee> findMaxAgeEmployees();
 
-    @Query("SELECT e.department.deptId AS deptId, COUNT(e) AS count, AVG(e.salary) AS avgSalary FROM Employee e GROUP BY e.department.deptId")
-    List<Object[]> getAvgSalaryByDept();
+        @Query("SELECT e.department.deptId AS deptId, COALESCE(AVG(e.salary), 0) AS avgSalary " +
+                "FROM Employee e " +
+                "GROUP BY e.department.deptId")
+        List<Object[]> getAvgSalaryByDept();
 
-    @Query("SELECT e.status AS status, COUNT(e) AS count, AVG(e.age) AS avgAge FROM Employee e GROUP BY e.status")
-    List<Object[]> getAvgAgeByStatus();
+
+
+    List<Employee> findByDepartment_DeptId(String deptId);
+    @Query("SELECT MAX(e.empId) FROM Employee e")
+    String findMaxEmpId();
+
 }
