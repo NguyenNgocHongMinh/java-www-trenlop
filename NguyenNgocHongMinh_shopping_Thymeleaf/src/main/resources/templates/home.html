@@ -3,14 +3,19 @@
   <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+      img.full-width {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        display: block;
+      }
+    </style>
   </head>
   <body>
-  <img style="height: 200px;" src="../../images/shopping.jpg" th:src="@{/images/shopping.jpg}"/>
+  <img class="full-width"  src="../../images/shopping.jpg" th:src="@{/images/shopping.jpg}"/>
 
   <h1 th:text="${message}" >mess</h1>
-
-<!--  <h2 th:text="#{}">welcome</h2>-->
-
   <p th:text="${date}"></p>
   <p>Please select an option</p>
     <ol>

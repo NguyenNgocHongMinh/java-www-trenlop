@@ -18,4 +18,6 @@ public class ProductService {
     public Product findById(Integer id){
         return repo.findById(id).orElse(null);
     }
+    public Product save(Product p) { return repo.save(p); }
+    public void delete(int id) { repo.deleteById(id); }
 }
