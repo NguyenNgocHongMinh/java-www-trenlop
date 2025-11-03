@@ -11,3 +11,6 @@ INSERT INTO comments (text, product_id) VALUES
                                             ('Sản phẩm rất tốt', 1),
                                             ('Giá hơi cao nhưng đáng tiền', 1),
                                             ('Giao hàng nhanh', 2);
+
+customer/111
+admin/123

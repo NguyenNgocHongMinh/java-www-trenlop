@@ -1,48 +1,67 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Product List</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
-
-    body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    }
-
-    .product {
-    border: 1px solid #ccc;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    }
-
-    .product h3 {
-    margin: 0;
-    color: #2a7;
-    }
-
-    .comments {
-    margin-top: 10px;
-    padding-left: 20px;
-    }
-
-    .comment {
-    border-left: 3px solid #2a7;
-    margin-bottom: 8px;
-    padding-left: 10px;
-    font-style: italic;
-    }
+      body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      }
+      .product {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      }
+      .product h3 {
+      margin: 0;
+      color: #2a7;
+      }
+      .comments {
+      margin-top: 10px;
+      padding-left: 20px;
+      }
+      .comment {
+      border-left: 3px solid #2a7;
+      margin-bottom: 8px;
+      padding-left: 10px;
+      font-style: italic;
+      }
     </style>
   </head>
   <body>
   <div class="d-flex justify-content-between align-items-center mb-3">
     <a class="btn btn-primary btn-sm" th:href="@{/home}">Quay lại</a>
-    <h1>List Product</h1>
-    <a th:href="@{/product/add}" class="btn btn-primary btn-sm">+ Thêm sản phẩm</a>
-  </div>
+    <div>
+      <!-- Hiển thị thông tin user đang đăng nhập -->
+      <span sec:authorize="isAuthenticated()">
+        Xin chào
+        <span sec:authorize="hasRole('ADMIN')">ADMIN</span><span sec:authorize="hasRole('CUSTOMER') and !hasRole('ADMIN')">CUSTOMER</span><span sec:authorize="!isAuthenticated() or (!hasRole('ADMIN') and !hasRole('CUSTOMER'))">GUEST</span>
+      </span>
+      <span sec:authorize="!isAuthenticated()">
+        <a th:href="@{/login}" class="btn btn-sm btn-outline-primary">Đăng nhập</a>
+      </span>
 
+      <!-- Giỏ hàng chỉ hiển thị cho CUSTOMER và ADMIN -->
+      <a sec:authorize="hasAnyRole('CUSTOMER', 'ADMIN')" th:href="@{/cart}" class="btn btn-success btn-sm bi bi-cart"></a>
+
+      <!-- Logout button -->
+      <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display: inline;">
+        <button type="submit" class="btn btn-sm btn-outline-danger ms-2">Đăng xuất</button>
+      </form>
+    </div>
+
+    <!-- Nút thêm sản phẩm (ADMIN) -->
+    <div sec:authorize="hasRole('ADMIN')">
+      <a th:href="@{/product/add}" class="btn btn-primary btn-sm">Thêm sản phẩm</a>
+      <a th:href="@{/category}" class="btn btn-info btn-sm ms-2">Quản lý Danh mục</a>
+    </div>
+  </div>
+  <h1>List Product</h1>
 
   <div th:each="product : ${products}" class="product">
     <a href="product/productdetail.html" th:href="@{'/product/' + ${product.id}}">
@@ -51,14 +70,15 @@
     </a>
 
 
-    <p><strong>Price:</strong> <span th:text="${product.price}">0</span> USD</p>
+    <p><strong>Price:</strong> <span th:text="${product.price}">0</span> VND</p>
     <div class="comments" th:if="${!#lists.isEmpty(product.comments)}">
       <h3>Comments:</h3>
       <div th:each="c : ${product.comments}" class="comment">
         <span th:text="${c.text}">Comment Content</span>
       </div>
     </div>
-    <div class="mt-2">
+    <!-- Nút Sửa và Xóa (ADMIN) -->
+    <div class="mt-2" sec:authorize="hasRole('ADMIN')">
       <a th:href="@{'/product/edit/' + ${product.id}}" class="btn btn-warning btn-sm">Sửa</a>
       <a th:href="@{'/product/delete/' + ${product.id}}"
          class="btn btn-danger btn-sm"

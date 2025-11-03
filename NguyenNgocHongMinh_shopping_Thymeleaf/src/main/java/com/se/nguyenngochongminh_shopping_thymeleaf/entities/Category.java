@@ -1,5 +1,7 @@
 package com.se.nguyenngochongminh_shopping_thymeleaf.entities;
+
 import jakarta.persistence.*;
+
 import java.util.*;
 
 @Entity

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Giỏ hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            margin: 20px;
+        }
+
+        .cart-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .cart-item.selected {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .total-section {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .quantity-input {
+            width: 80px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a class="btn btn-primary btn-sm" th:href="@{/product}"> Tiếp tục mua sắm</a>
+        <h1>Giỏ hàng của bạn</h1>
+        <a th:href="@{/cart/clear}" class="btn btn-danger btn-sm"
+           onclick="return confirm('Bạn có chắc muốn xóa toàn bộ giỏ hàng?')">
+            Xóa tất cả
+        </a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(cartItems)}" class="alert alert-info">
+        Giỏ hàng của bạn đang trống. <a th:href="@{/product}">Mua sắm ngay!</a>
+    </div>
+
+    <form th:if="${!#lists.isEmpty(cartItems)}" th:action="@{/order/checkout}" method="post">
+        <div th:each="item, iterStat : ${cartItems}" class="cart-item" th:classappend="${item.selected} ? 'selected' : ''">
+            <div class="row align-items-center">
+                <div class="col-md-1">
+                    <input type="checkbox"
+                           th:id="'check-' + ${item.productId}"
+                           th:name="'selectedItems'"
+                           th:value="${item.productId}"
+                           th:checked="${item.selected}"
+                           class="form-check-input"
+                           style="width: 25px; height: 25px;">
+                </div>
+
+                <div class="col-md-4">
+                    <h5 th:text="${item.productName}">Product Name</h5>
+                    <p class="text-muted mb-0">
+                        Đơn giá: <strong th:text="${item.price}">0</strong> VND
+                    </p>
+                </div>
+
+                <div class="col-md-3">
+                    <label>Số lượng:</label>
+                    <div class="input-group">
+                        <input type="number"
+                               th:id="'qty-' + ${item.productId}"
+                               th:value="${item.quantity}"
+                               >
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <strong>Thành tiền:</strong><br>
+                    <span th:text="${item.total}">0</span> VND
+                </div>
+
+                <div class="col-md-2 text-end">
+                    <a th:href="@{'/cart/remove/' + ${item.productId}}"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('Xóa sản phẩm này khỏi giỏ hàng?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="total-section">
+            <div class="row">
+                <div class="col-md-8">
+                    <h4>Tổng tiền toàn bộ giỏ hàng:</h4>
+                    <h5 class="text-primary">Tổng tiền các sản phẩm đã chọn:</h5>
+                </div>
+                <div class="col-md-4 text-end">
+                    <h4><span th:text="${totalAmount}">0</span> VND</h4>
+                    <h5 class="text-primary">
+                        <span th:text="${selectedTotal}">0</span> VND
+                    </h5>
+                </div>
+            </div>
+
+            <div class="mt-3 text-end">
+                <button type="submit" class="btn btn-success btn-lg">
+                   Thanh toán các sản phẩm đã chọn
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function updateQuantity(input, productId) {
+        const quantity = input.value;
+        if (quantity > 0) {
+            // Tạo form ẩn để submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/cart/update/' + productId;
+
+            const qtyInput = document.createElement('input');
+            qtyInput.type = 'hidden';
+            qtyInput.name = 'quantity';
+            qtyInput.value = quantity;
+
+            form.appendChild(qtyInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Tự động submit khi checkbox thay đổi
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/cart/select';
+
+            // Thêm CSRF token từ meta tag
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_csrf';
+                csrfInput.value = csrfToken.getAttribute('content');
+                form.appendChild(csrfInput);
+            }
+
+            // Lấy tất cả checkbox đã chọn
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checked => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selectedItems';
+                input.value = checked.value;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+</script>
+</body>
+</html>
+

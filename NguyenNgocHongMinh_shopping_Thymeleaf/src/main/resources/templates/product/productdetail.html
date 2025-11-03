@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-  <html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <html lang="en" xmlns:th="http://www.thymeleaf.org"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Chi tiết sản phẩm</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
     .comments {
     margin-top: 10px;
@@ -19,25 +21,83 @@
     </style>
   </head>
   <body class="container mt-10px">
-     <a class="btn btn-primary btn-sm" th:href="@{/product}">quay lại</a>
-     <h1>Product Detail</h1>
-     <p th:text="'Tên sản phẩm: ' + ${product.name}"></p>
-      <p th:text="'Đơn giá: ' + ${product.price}"></p>
-      <p th:text="'Tình trạng: ' + (${product.inStock} ? 'còn hàng' : 'hết hàng')"></p>
+     <div class="d-flex justify-content-between align-items-center mb-3">
+         <a class="btn btn-primary btn-sm" th:href="@{/product}"> Quay lại</a>
+         <h1>Chi tiết sản phẩm</h1>
+         <a th:href="@{/cart}" class="btn btn-success btn-sm bi bi-cart"></a>
+     </div>
 
+     <div class="card mb-4">
+         <div class="card-body">
+             <h2 th:text="${product.name}">Product Name</h2>
+             <p class="fs-4">
+                 <strong>Đơn giá:</strong>
+                 <span th:text="${product.price}">0</span> VND
+             </p>
+             <p>
+                 <strong>Tình trạng:</strong>
+                 <span th:if="${product.inStock}" class="badge bg-success">Còn hàng</span>
+                 <span th:unless="${product.inStock}" class="badge bg-danger">Hết hàng</span>
+             </p>
+             <p><strong>Danh mục:</strong> <span th:text="${product.category.name}">Category</span></p>
 
-      <p th:text="'Danh mục: ' + ${product.category.name}"></p>
+             <!-- thêm vào giỏ hàng (CUSTOMER và ADMIN) -->
+             <div class="mt-3" sec:authorize="hasAnyRole('CUSTOMER', 'ADMIN')">
+                 <form th:action="@{'/cart/add/' + ${product.id}}" method="post" style="display: inline-block;">
+                     <div class="input-group" style="width: 300px;">
+                         <span>Số lượng:</span>
+                         <input type="number" name="quantity" value="1" min="1" class="form-control">
+                         <button type="submit"
+                                 class="btn btn-success"
+                                 th:disabled="${!product.inStock}">
+                             <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                         </button>
+                     </div>
+                 </form>
+             </div>
 
-      <form th:action="@{'/comment/add/' + ${product.id}}" method="post">
-          <input type="text" name="text" placeholder="Viết comment..." required/>
-          <button type="submit">Gửi</button>
-      </form>
+             <!-- Thông báo cho GUEST -->
+             <div class="mt-3 alert alert-info" sec:authorize="!isAuthenticated()">
+                 <i class="bi bi-info-circle"></i>
+                 Vui lòng <a th:href="@{/login}" class="alert-link">đăng nhập</a> để thêm sản phẩm vào giỏ hàng.
+             </div>
+         </div>
+     </div>
 
-     <div class="comments" th:if="${!#lists.isEmpty(product.comments)}">
-         <h3>Comments:</h3>
-         <div th:each="c : ${product.comments}" class="comment">
-             <span th:text="${c.text}">Comment Content</span>
-             <a th:href="@{'/comment/delete/' + ${c.id} + '/' + ${product.id}}">Xóa</a>
+     <!-- Comments -->
+     <div class="card">
+         <div class="card-body">
+             <h3>Bình luận</h3>
+
+             <!-- Form comment (CUSTOMER và ADMIN) -->
+             <form sec:authorize="hasAnyRole('CUSTOMER', 'ADMIN')"
+                   th:action="@{'/comment/add/' + ${product.id}}" method="post" class="mb-3">
+                 <div class="input-group">
+                     <input type="text" name="text" class="form-control" placeholder="Viết comment..." required/>
+                     <button type="submit" class="btn btn-primary">Gửi</button>
+                 </div>
+             </form>
+
+             <!-- Thông báo cho GUEST -->
+             <div sec:authorize="!isAuthenticated()" class="alert alert-info">
+                 <i class="bi bi-info-circle"></i>
+                 Vui lòng <a th:href="@{/login}" class="alert-link">đăng nhập</a> để viết bình luận.
+             </div>
+
+             <div class="comments" th:if="${!#lists.isEmpty(product.comments)}">
+                 <div th:each="c : ${product.comments}" class="comment mb-2 p-2 border-start border-3 border-success">
+                     <span th:text="${c.text}">Comment Content</span>
+                     <!-- Nút xóa comment -->
+                     <a sec:authorize="hasRole('ADMIN')"
+                        th:href="@{'/comment/delete/' + ${c.id} + '/' + ${product.id}}"
+                        class="btn btn-danger btn-sm float-end"
+                        onclick="return confirm('Xóa comment này?')">Xóa</a>
+                 </div>
+             </div>
+
+             <div th:if="${#lists.isEmpty(product.comments)}" class="alert alert-info">
+                 Chưa có bình luận nào.
+             </div>
          </div>
      </div>
 
